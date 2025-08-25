@@ -72,8 +72,8 @@ model Coupon {
   storeId String
   sessionId String
   code String
-  discountPercent Float
-  isRedeemed Boolean
+  discountPercent Float @default(10)
+  isRedeemed Boolean @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -92,7 +92,7 @@ model AbandonmentEvent {
   id String @id @default(cuid())
   storeId String
   sessionId String
-  couponId String
+  couponId String?
   isAccepted Boolean @default(false)
   isCheckoutCompleted Boolean @default(false)
   triggerEvent TriggerEvent
@@ -101,7 +101,7 @@ model AbandonmentEvent {
   abandonmentCartItem AbandonmentCartItem[]
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  coupon Coupon? @relation(fields: [couponId], references: [id], onDelete: Cascade)
 }
 
 model AbandonmentCartItem {
@@ -111,6 +111,7 @@ model AbandonmentCartItem {
   productName String
   productPrice Float
   productQuantity Float
+  createdAt DateTime @default(now())
 
   abandonmentEvent AbandonmentEvent @relation(fields: [abandonmentEventId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id])

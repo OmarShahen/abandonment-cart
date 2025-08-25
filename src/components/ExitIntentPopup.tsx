@@ -6,72 +6,78 @@ import { useCart } from "@/lib/store";
 export default function ExitIntentPopup() {
   const cartItems = useCart((state) => state.items);
   const [showPopup, setShowPopup] = useState(false);
-  const [lastTrigger, setLastTrigger] = useState(0); // for cooldown
-  const COOLDOWN = 10000; // 10 seconds
-  const IDLE_TIME = 15000; // 15 seconds idle for mobile
+  const [lastTrigger, setLastTrigger] = useState(0);
+  const COOLDOWN = 10000; // 10s cooldown
+  const IDLE_TIME = 15000; // 15s idle = abandon on mobile
 
   useEffect(() => {
     let idleTimer: NodeJS.Timeout;
+    let lastScroll = window.scrollY;
 
-    // Desktop: exit-intent
-    const handleMouseLeave = (e: MouseEvent) => {
+    const hasShownThisSession =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("abandonment_popup_shown") === "true";
+
+    const triggerPopup = () => {
       if (
-        e.clientY <= 0 &&
         cartItems.length > 0 &&
         Date.now() - lastTrigger > COOLDOWN &&
-        !showPopup
+        !showPopup &&
+        !hasShownThisSession
       ) {
         setShowPopup(true);
         setLastTrigger(Date.now());
+        sessionStorage.setItem("abandonment_popup_shown", "true");
       }
     };
 
-    // Mobile: idle detection
+    // ---- Desktop: exit intent ----
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0) {
+        triggerPopup();
+      }
+    };
+
+    // ---- Mobile: idle detection ----
     const handleUserActivity = () => {
       clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
-        if (
-          cartItems.length > 0 &&
-          Date.now() - lastTrigger > COOLDOWN &&
-          !showPopup
-        ) {
-          setShowPopup(true);
-          setLastTrigger(Date.now());
-        }
+        triggerPopup();
       }, IDLE_TIME);
     };
 
-    // Mobile: scroll up detection
-    let lastScroll = window.scrollY;
+    // ---- Mobile: scroll-up detection ----
     const handleScroll = () => {
       const delta = lastScroll - window.scrollY;
-      if (
-        delta > 50 && // fast upward scroll
-        cartItems.length > 0 &&
-        Date.now() - lastTrigger > COOLDOWN &&
-        !showPopup
-      ) {
-        setShowPopup(true);
-        setLastTrigger(Date.now());
+      if (delta > 50) {
+        triggerPopup();
       }
       lastScroll = window.scrollY;
     };
 
-    document.addEventListener("mouseleave", handleMouseLeave);
-    window.addEventListener("scroll", handleScroll);
-    window.addEventListener("mousemove", handleUserActivity);
-    window.addEventListener("keydown", handleUserActivity);
-    window.addEventListener("touchstart", handleUserActivity);
+    // Detect device type
+    const isMobile =
+      typeof navigator !== "undefined" &&
+      /Mobi|Android/i.test(navigator.userAgent);
 
-    handleUserActivity(); // start idle timer
+    if (isMobile) {
+      window.addEventListener("scroll", handleScroll);
+      window.addEventListener("touchstart", handleUserActivity);
+      window.addEventListener("keydown", handleUserActivity);
+      handleUserActivity();
+    } else {
+      document.addEventListener("mouseleave", handleMouseLeave);
+    }
 
     return () => {
-      document.removeEventListener("mouseleave", handleMouseLeave);
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("mousemove", handleUserActivity);
-      window.removeEventListener("keydown", handleUserActivity);
-      window.removeEventListener("touchstart", handleUserActivity);
-      clearTimeout(idleTimer);
+      if (isMobile) {
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("touchstart", handleUserActivity);
+        window.removeEventListener("keydown", handleUserActivity);
+        clearTimeout(idleTimer);
+      } else {
+        document.removeEventListener("mouseleave", handleMouseLeave);
+      }
     };
   }, [cartItems, lastTrigger, showPopup]);
 
