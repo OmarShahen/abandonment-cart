@@ -19,6 +19,8 @@ model Store {
   
   products    Product[]
   orders      Order[]
+  coupons     Coupon[]
+  abandonmentEvents AbandonmentEvent[]
 }
 
 model Product {
@@ -35,6 +37,7 @@ model Product {
   
   store       Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
   orderItems  OrderItem[]
+  abandonmentCartItem AbandonmentCartItem[]
 }
 
 model Order {
@@ -62,4 +65,53 @@ model OrderItem {
   
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id String @id @default(cuid())
+  storeId String
+  sessionId String
+  code String
+  discountPercent Float
+  isRedeemed Boolean
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  abandonmentEvents AbandonmentEvent[]
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+}
+
+enum TriggerEvent {
+  CURSOR_LEAVE
+  IDLE
+  SCROLLUP_FAST
+}
+
+model AbandonmentEvent {
+  id String @id @default(cuid())
+  storeId String
+  sessionId String
+  couponId String
+  isAccepted Boolean @default(false)
+  isCheckoutCompleted Boolean @default(false)
+  triggerEvent TriggerEvent
+  createdAt DateTime @default(now())
+
+  abandonmentCartItem AbandonmentCartItem[]
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+}
+
+model AbandonmentCartItem {
+  id String @id @default(cuid())
+  abandonmentEventId String
+  productId String
+  productName String
+  productPrice Float
+  productQuantity Float
+
+  abandonmentEvent AbandonmentEvent @relation(fields: [abandonmentEventId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
 }

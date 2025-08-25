@@ -1,37 +1,48 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { ShoppingCart, Store } from 'lucide-react'
-import { useCart } from '@/lib/store'
-import { formatPrice } from '@/lib/utils'
+import Link from "next/link";
+import { ShoppingCart, Store } from "lucide-react";
+import { useCart } from "@/lib/store";
+import { formatPrice } from "@/lib/utils";
+import ExitIntentPopup from "./ExitIntentPopup";
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const { getTotalItems, getTotalPrice, setOpen } = useCart()
-  const totalItems = getTotalItems()
-  const totalPrice = getTotalPrice()
+  const { getTotalItems, getTotalPrice, setOpen } = useCart();
+  const totalItems = getTotalItems();
+  const totalPrice = getTotalPrice();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <ExitIntentPopup />
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 text-slate-800 hover:text-blue-600 transition-colors">
+            <Link
+              href="/"
+              className="flex items-center space-x-2 text-slate-800 hover:text-blue-600 transition-colors"
+            >
               <Store className="h-8 w-8" />
               <span className="text-xl font-bold">Navona Store</span>
             </Link>
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
-              <Link href="/" className="text-slate-600 hover:text-slate-900 transition-colors">
+              <Link
+                href="/"
+                className="text-slate-600 hover:text-slate-900 transition-colors"
+              >
                 Home
               </Link>
-              <Link href="/cart" className="text-slate-600 hover:text-slate-900 transition-colors">
+              <Link
+                href="/cart"
+                className="text-slate-600 hover:text-slate-900 transition-colors"
+              >
                 Cart
               </Link>
             </nav>
@@ -42,7 +53,9 @@ export default function Layout({ children }: LayoutProps) {
               className="relative flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
             >
               <ShoppingCart className="h-5 w-5" />
-              <span className="hidden sm:inline">{formatPrice(totalPrice)}</span>
+              <span className="hidden sm:inline">
+                {formatPrice(totalPrice)}
+              </span>
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
                   {totalItems}
@@ -54,9 +67,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <main className="container mx-auto px-4 py-8">{children}</main>
 
       {/* Footer */}
       <footer className="bg-slate-800 text-white py-12 mt-16">
@@ -74,5 +85,5 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </footer>
     </div>
-  )
-} 
+  );
+}
