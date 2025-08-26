@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(
-      { accepted: true, message: "Event Created Successfully!", data: result },
+      { accepted: true, message: "Event Created Successfully!", ...result },
       { status: 200 }
     );
   } catch (error: any) {
