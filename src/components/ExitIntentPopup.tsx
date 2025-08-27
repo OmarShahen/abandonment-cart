@@ -8,11 +8,14 @@ import api from "@/lib/api";
 import { getSessionId } from "@/lib/utils";
 import Loader from "./Loader";
 import { Coupon } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 const COOLDOWN = 10000; // 10s cooldown
 const IDLE_TIME = 15000; // 15s idle = abandon on mobile
 
 export default function ExitIntentPopup() {
+  const router = useRouter();
+
   const cartItems = useCart((state) => state.items);
   const [showPopup, setShowPopup] = useState(false);
   const [lastTrigger, setLastTrigger] = useState(0);
@@ -128,6 +131,11 @@ export default function ExitIntentPopup() {
     if (showPopup) createAbandonmentEvent();
   }, [showPopup]);
 
+  const handleApplyCoupon = () => {
+    setShowPopup(false);
+    router.push(`/checkout?coupon=${coupon?.code}`);
+  };
+
   if (!showPopup) return null;
 
   return (
@@ -183,7 +191,7 @@ export default function ExitIntentPopup() {
                 {/* CTA Button */}
                 <div className="flex items-center">
                   <button
-                    onClick={() => setShowPopup(false)}
+                    onClick={handleApplyCoupon}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-full shadow-md transition"
                   >
                     Apply Coupon

@@ -1,3 +1,5 @@
+import { TriggerEvent } from "@prisma/client";
+
 export interface Product {
   id: string;
   name: string;
@@ -31,5 +33,16 @@ export interface Coupon {
   discountPercent: number;
   isRedeemed: boolean;
   expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface AbandonmentEvent {
+  id: string;
+  storeId: string;
+  sessionId: string;
+  couponId: string;
+  isAccepted: boolean;
+  isCheckoutCompleted: boolean;
+  triggerEvent: TriggerEvent;
   createdAt: Date;
 }

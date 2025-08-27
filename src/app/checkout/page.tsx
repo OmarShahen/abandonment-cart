@@ -1,57 +1,73 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import Link from 'next/link'
-import { ArrowLeft, Lock, CreditCard, User, MapPin } from 'lucide-react'
-import Layout from '@/components/Layout'
-import { useCart } from '@/lib/store'
-import { formatPrice, getSessionId } from '@/lib/utils'
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowLeft, Lock, CreditCard, User, MapPin } from "lucide-react";
+import Layout from "@/components/Layout";
+import { useCart } from "@/lib/store";
+import { applyDiscount, formatPrice, getSessionId } from "@/lib/utils";
+import clsx from "clsx";
+import api from "@/lib/api";
+import { Coupon } from "@/lib/types";
 
 export default function CheckoutPage() {
-  const router = useRouter()
-  const { items, getTotalPrice, getTotalItems, clearCart } = useCart()
-  const [mounted, setMounted] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [orderCompleted, setOrderCompleted] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: 'United States',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    nameOnCard: ''
-  })
+  const router = useRouter();
 
-  const totalPrice = getTotalPrice()
-  const totalItems = getTotalItems()
-  const tax = totalPrice * 0.08
-  const finalTotal = totalPrice + tax
+  const searchParam = useSearchParams();
+  const couponCode = searchParam.get("coupon") || "";
+
+  const { items, getTotalPrice, getTotalItems, clearCart } = useCart();
+
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [isCouponValid, setIsCouponValid] = useState(false);
+  const [checkCouponMessage, setCheckCouponMessage] = useState("");
+  const [isCouponLoading, setIsCouponLoading] = useState(false);
+  const [coupon, setCoupon] = useState<Coupon>();
+
+  const [mounted, setMounted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderCompleted, setOrderCompleted] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    country: "United States",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    nameOnCard: "",
+  });
+
+  const totalPrice = applyDiscount(getTotalPrice(), discountPercent);
+  const totalItems = getTotalItems();
+  const tax = totalPrice * 0.08;
+  const finalTotal = totalPrice + tax;
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mounted && items.length === 0 && !orderCompleted) {
-      router.push('/cart')
+      router.push("/cart");
     }
-  }, [mounted, items.length, router, orderCompleted])
+  }, [mounted, items.length, router, orderCompleted]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsProcessing(true)
+    e.preventDefault();
+    setIsProcessing(true);
 
     try {
       // Create order in database
@@ -59,39 +75,62 @@ export default function CheckoutPage() {
         sessionId: getSessionId(),
         customerEmail: formData.email,
         customerName: `${formData.firstName} ${formData.lastName}`,
-        total: finalTotal,
-        items: items.map(item => ({
+        couponId: coupon?.id,
+        items: items.map((item) => ({
           productId: item.product.id,
           quantity: item.quantity,
-          price: item.product.price
-        }))
-      }
+        })),
+      };
 
-      const response = await fetch('/api/orders', {
-        method: 'POST',
+      const response = await fetch("/api/orders", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(orderData),
-      })
+      });
 
       if (response.ok) {
-        const order = await response.json()
+        const responseData = await response.json();
         // Set order completed flag to prevent empty cart redirect
-        setOrderCompleted(true)
+        setOrderCompleted(true);
         // Clear cart and redirect to thank you page
-        clearCart()
-        router.push(`/thank-you?orderId=${order.id}`)
+        clearCart();
+        router.push(`/thank-you?orderId=${responseData.order.id}`);
       } else {
-        throw new Error('Failed to create order')
+        throw new Error("Failed to create order");
       }
     } catch (error) {
-      console.error('Error processing order:', error)
-      alert('There was an error processing your order. Please try again.')
+      console.error("Error processing order:", error);
+      alert("There was an error processing your order. Please try again.");
     } finally {
-      setIsProcessing(false)
+      setIsProcessing(false);
     }
-  }
+  };
+
+  const handleApplyCoupon = async () => {
+    try {
+      setIsCouponLoading(true);
+
+      const checkCouponData = {
+        storeId: "store_navona_demo",
+        sessionId: getSessionId(),
+        code: couponCode,
+      };
+      const response = await api.post(`/coupons/validate`, checkCouponData);
+      const { coupon, message } = response.data;
+      setIsCouponValid(true);
+      setCheckCouponMessage(message);
+      setDiscountPercent(coupon.discountPercent);
+      setCoupon(coupon);
+    } catch (error: any) {
+      console.error(error);
+      setIsCouponValid(false);
+      setCheckCouponMessage(error?.response?.data?.error);
+    } finally {
+      setIsCouponLoading(false);
+    }
+  };
 
   if (!mounted) {
     return (
@@ -108,18 +147,21 @@ export default function CheckoutPage() {
           </div>
         </div>
       </Layout>
-    )
+    );
   }
 
   if (items.length === 0) {
-    return null // Will redirect to cart
+    return null; // Will redirect to cart
   }
 
   return (
     <Layout>
       {/* Header */}
       <div className="mb-8">
-        <Link href="/cart" className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors mb-4">
+        <Link
+          href="/cart"
+          className="inline-flex items-center text-slate-600 hover:text-slate-900 transition-colors mb-4"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to cart
         </Link>
@@ -135,12 +177,17 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
               <div className="flex items-center space-x-3 mb-6">
                 <User className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-slate-900">Contact Information</h3>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Contact Information
+                </h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Email address
                   </label>
                   <input
@@ -154,10 +201,13 @@ export default function CheckoutPage() {
                     placeholder="your@email.com"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="firstName"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       First name
                     </label>
                     <input
@@ -172,7 +222,10 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="lastName"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       Last name
                     </label>
                     <input
@@ -194,12 +247,17 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
               <div className="flex items-center space-x-3 mb-6">
                 <MapPin className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-slate-900">Shipping Address</h3>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Shipping Address
+                </h3>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Street address
                   </label>
                   <input
@@ -213,10 +271,13 @@ export default function CheckoutPage() {
                     placeholder="123 Main Street"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="city"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       City
                     </label>
                     <input
@@ -231,7 +292,10 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="postalCode"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       Postal code
                     </label>
                     <input
@@ -253,13 +317,18 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
               <div className="flex items-center space-x-3 mb-6">
                 <CreditCard className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-slate-900">Payment Information</h3>
+                <h3 className="text-lg font-semibold text-slate-900">
+                  Payment Information
+                </h3>
                 <Lock className="h-4 w-4 text-green-600" />
               </div>
-              
+
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="cardNumber" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="cardNumber"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Card number
                   </label>
                   <input
@@ -273,10 +342,13 @@ export default function CheckoutPage() {
                     placeholder="1234 5678 9012 3456"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="col-span-2">
-                    <label htmlFor="expiryDate" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="expiryDate"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       Expiry date
                     </label>
                     <input
@@ -291,7 +363,10 @@ export default function CheckoutPage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="cvv" className="block text-sm font-medium text-slate-700 mb-2">
+                    <label
+                      htmlFor="cvv"
+                      className="block text-sm font-medium text-slate-700 mb-2"
+                    >
                       CVV
                     </label>
                     <input
@@ -306,9 +381,12 @@ export default function CheckoutPage() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
-                  <label htmlFor="nameOnCard" className="block text-sm font-medium text-slate-700 mb-2">
+                  <label
+                    htmlFor="nameOnCard"
+                    className="block text-sm font-medium text-slate-700 mb-2"
+                  >
                     Name on card
                   </label>
                   <input
@@ -333,7 +411,9 @@ export default function CheckoutPage() {
             >
               <Lock className="h-5 w-5" />
               <span>
-                {isProcessing ? 'Processing...' : `Place Order • ${formatPrice(finalTotal)}`}
+                {isProcessing
+                  ? "Processing..."
+                  : `Place Order • ${formatPrice(finalTotal)}`}
               </span>
             </button>
           </form>
@@ -342,8 +422,10 @@ export default function CheckoutPage() {
         {/* Order Summary */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 sticky top-24">
-            <h3 className="text-xl font-semibold text-slate-900 mb-6">Order Summary</h3>
-            
+            <h3 className="text-xl font-semibold text-slate-900 mb-6">
+              Order Summary
+            </h3>
+
             {/* Items */}
             <div className="space-y-4 mb-6">
               {items.map((item) => (
@@ -374,7 +456,9 @@ export default function CheckoutPage() {
             {/* Totals */}
             <div className="space-y-3 pt-6 border-t border-slate-200">
               <div className="flex justify-between">
-                <span className="text-slate-600">Subtotal ({totalItems} items)</span>
+                <span className="text-slate-600">
+                  Subtotal ({totalItems} items)
+                </span>
                 <span className="font-medium">{formatPrice(totalPrice)}</span>
               </div>
               <div className="flex justify-between">
@@ -394,17 +478,36 @@ export default function CheckoutPage() {
 
             {/* Promo Code */}
             <div className="mt-6 p-4 bg-slate-50 rounded-xl">
-              <h4 className="font-medium text-slate-900 mb-2">Have a promo code?</h4>
+              <h4 className="font-medium text-slate-900 mb-2">
+                Have a promo code?
+              </h4>
               <div className="flex space-x-2">
                 <input
                   type="text"
                   placeholder="Enter code"
                   className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  defaultValue={couponCode}
                 />
-                <button className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors">
-                  Apply
+                <button
+                  onClick={handleApplyCoupon}
+                  className={clsx(
+                    "cursor-pointer px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors",
+                    couponCode && "!bg-blue-600 !text-white"
+                  )}
+                >
+                  {isCouponLoading ? "Applying..." : "Apply"}
                 </button>
               </div>
+              {checkCouponMessage && (
+                <p
+                  className={clsx(
+                    "text-xs mt-1 font-[500]",
+                    isCouponValid ? "text-green-500" : "text-red-500"
+                  )}
+                >
+                  {checkCouponMessage}
+                </p>
+              )}
               <p className="text-xs text-slate-500 mt-2">
                 Discount will be applied before payment processing
               </p>
@@ -427,5 +530,5 @@ export default function CheckoutPage() {
         </div>
       </div>
     </Layout>
-  )
-} 
+  );
+}

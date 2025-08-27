@@ -45,7 +45,7 @@ model Order {
   sessionId     String
   customerEmail String?
   customerName  String?
-  total         Float
+  total         Decimal
   status        String   @default("pending") // pending, completed, cancelled
   storeId       String
   createdAt     DateTime @default(now())
@@ -92,7 +92,7 @@ model AbandonmentEvent {
   id String @id @default(cuid())
   storeId String
   sessionId String
-  couponId String?
+  couponId String
   isAccepted Boolean @default(false)
   isCheckoutCompleted Boolean @default(false)
   triggerEvent TriggerEvent
