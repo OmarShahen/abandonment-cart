@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Store } from "lucide-react";
+import { ShoppingCart, Store, Settings } from "lucide-react";
 import { useCart } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import ExitIntentPopup from "./ExitIntentPopup";
@@ -44,6 +44,12 @@ export default function Layout({ children }: LayoutProps) {
                 className="text-slate-600 hover:text-slate-900 transition-colors"
               >
                 Cart
+              </Link>
+              <Link
+                href="/admin"
+                className="flex items-center space-x-1 text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                Admin
               </Link>
             </nav>
 

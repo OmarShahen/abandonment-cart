@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app\\app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app\\app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app\\prisma/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app/**)",
+      "Read(C:\\Users\\USER\\projects\\navonaai\\navona-shopify-app/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -35,8 +35,12 @@ export default function ExitIntentPopup() {
     const hasShownThisSession = false;
 
     const triggerPopup = () => {
+      // Check if cart has items that accept coupons
+      const hasEligibleProducts = cartItems.some(item => item.product.isAcceptCoupon);
+      
       if (
         cartItems.length > 0 &&
+        hasEligibleProducts &&
         Date.now() - lastTrigger > COOLDOWN &&
         !showPopup &&
         !hasShownThisSession

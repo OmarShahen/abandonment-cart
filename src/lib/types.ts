@@ -9,6 +9,7 @@ export interface Product {
   stock: number;
   category: string | null;
   storeId: string;
+  isAcceptCoupon: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -3,16 +3,34 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  // Create a default store
-  const store = await prisma.store.create({
-    data: {
-      id: 'store_navona_demo',
-      name: 'Navona Demo Store',
-      description: 'A modern demo e-commerce store with complete shopping functionality',
-    },
+  // Check if store already exists (for PostgreSQL deployments)
+  let store = await prisma.store.findUnique({
+    where: { id: 'store_navona_demo' }
   })
 
-  console.log('Created store:', store.name)
+  if (!store) {
+    // Create a default store
+    store = await prisma.store.create({
+      data: {
+        id: 'store_navona_demo',
+        name: 'Navona Demo Store',
+        description: 'A modern demo e-commerce store with complete shopping functionality',
+      },
+    })
+    console.log('Created store:', store.name)
+  } else {
+    console.log('Store already exists:', store.name)
+  }
+
+  // Check if products already exist
+  const existingProducts = await prisma.product.count({
+    where: { storeId: store.id }
+  })
+
+  if (existingProducts > 0) {
+    console.log(`${existingProducts} products already exist, skipping seed`)
+    return
+  }
 
   // Create sample products
   const products = await Promise.all([
@@ -25,6 +43,7 @@ async function main() {
         stock: 50,
         category: 'Electronics',
         storeId: store.id,
+        isAcceptCoupon: true,
       },
     }),
     prisma.product.create({
@@ -36,6 +55,7 @@ async function main() {
         stock: 25,
         category: 'Accessories',
         storeId: store.id,
+        isAcceptCoupon: false,
       },
     }),
     prisma.product.create({
@@ -47,6 +67,7 @@ async function main() {
         stock: 100,
         category: 'Food & Beverages',
         storeId: store.id,
+        isAcceptCoupon: true,
       },
     }),
     prisma.product.create({
@@ -58,6 +79,7 @@ async function main() {
         stock: 75,
         category: 'Fitness',
         storeId: store.id,
+        isAcceptCoupon: true,
       },
     }),
     prisma.product.create({
@@ -69,6 +91,7 @@ async function main() {
         stock: 40,
         category: 'Bags',
         storeId: store.id,
+        isAcceptCoupon: false,
       },
     }),
     prisma.product.create({
@@ -80,6 +103,7 @@ async function main() {
         stock: 30,
         category: 'Electronics',
         storeId: store.id,
+        isAcceptCoupon: true,
       },
     }),
   ])
