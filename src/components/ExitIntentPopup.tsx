@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/lib/store";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import api from "@/lib/api";
 import { getSessionId } from "@/lib/utils";
 import Loader from "./Loader";
 import { Coupon } from "@/lib/types";
@@ -122,8 +121,20 @@ export default function ExitIntentPopup() {
           triggerType,
           items,
         };
-        const response = await api.post(`/abandonment-events`, eventData);
-        setCoupon(response.data.coupon);
+        const response = await fetch('/api/abandonment-events', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(eventData),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to create abandonment event');
+        }
+        
+        const data = await response.json();
+        setCoupon(data.coupon);
       } catch (error: unknown) {
         console.error(error);
         setShowPopup(false);
