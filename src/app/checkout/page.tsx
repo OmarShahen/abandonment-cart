@@ -9,7 +9,6 @@ import Layout from "@/components/Layout";
 import { useCart } from "@/lib/store";
 import { applyDiscount, formatPrice, getSessionId } from "@/lib/utils";
 import clsx from "clsx";
-import api from "@/lib/api";
 import { Coupon } from "@/lib/types";
 
 function CheckoutContent() {
@@ -117,8 +116,20 @@ function CheckoutContent() {
         sessionId: getSessionId(),
         code: couponCode,
       };
-      const response = await api.post(`/coupons/validate`, checkCouponData);
-      const { coupon, message } = response.data;
+      const response = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(checkCouponData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Invalid or expired coupon');
+      }
+      
+      const data = await response.json();
+      const { coupon, message } = data;
       setIsCouponValid(true);
       setCheckCouponMessage(message);
       setDiscountPercent(coupon.discountPercent);
@@ -126,8 +137,7 @@ function CheckoutContent() {
     } catch (error: unknown) {
       console.error(error);
       setIsCouponValid(false);
-      const apiError = error as { response?: { data?: { error?: string } } };
-      setCheckCouponMessage(apiError?.response?.data?.error || 'Invalid coupon');
+      setCheckCouponMessage('Invalid or expired coupon');
     } finally {
       setIsCouponLoading(false);
     }
