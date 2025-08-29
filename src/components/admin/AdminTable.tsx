@@ -6,23 +6,23 @@ interface Column {
   width?: string;
 }
 
-interface AdminTableProps {
+interface AdminTableProps<T = Record<string, unknown>> {
   title: string;
   columns: Column[];
-  data: Record<string, unknown>[];
-  renderRow: (item: Record<string, unknown>, index: number) => ReactNode;
+  data: T[];
+  renderRow: (item: T, index: number) => ReactNode;
   loading?: boolean;
   emptyMessage?: string;
 }
 
-export default function AdminTable({
+export default function AdminTable<T>({
   title,
   columns,
   data,
   renderRow,
   loading = false,
   emptyMessage = "No data available"
-}: AdminTableProps) {
+}: AdminTableProps<T>) {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <div className="px-6 py-4">
