@@ -8,8 +8,8 @@ This project implements NavonaAI's Task A (Abandonment Detection & Prevention) w
 
 ## 🌐 Live Demo
 
-**🔗 Application**: [YOUR_DEPLOYED_URL_HERE]  
-**📊 Admin Dashboard**: [YOUR_DEPLOYED_URL_HERE]/admin  
+**🔗 Application**: https://abandonment-cart-ictl98321-omarshahens-projects.vercel.app/  
+**📊 Admin Dashboard**: https://abandonment-cart-ictl98321-omarshahens-projects.vercel.app/admin  
 
 ### Test Accounts
 - **Store Demo**: No login required - browse products and test abandonment  
@@ -42,7 +42,7 @@ This project implements NavonaAI's Task A (Abandonment Detection & Prevention) w
 ### Technical Highlights
 - **Next.js 15**: App Router with Server Components
 - **TypeScript**: Full type safety throughout the application
-- **Prisma ORM**: Type-safe database operations with SQLite
+- **Prisma ORM**: Type-safe database operations with PostgreSQL
 - **Zustand**: Lightweight state management for cart functionality
 - **Modern UI**: Beautiful components with Tailwind CSS and Lucide icons
 
@@ -76,19 +76,33 @@ npm install
 ### 3. Set Up Environment Variables
 Create a `.env` file in the root directory:
 ```bash
-# Database
-DATABASE_URL="file:./dev.db"
+# Database (PostgreSQL)
+DATABASE_URL="postgresql://username:password@localhost:5432/navona_store"
 
 # App Configuration
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
+
+**Note**: Replace the DATABASE_URL with your actual PostgreSQL connection string. For development, you can use:
+- Local PostgreSQL instance
+- Docker PostgreSQL container  
+- Cloud providers (Neon, Supabase, Railway, etc.)
 
 ### 4. Initialize Database
 ```bash
 # Generate Prisma client
 npx prisma generate
 
-# Create database and tables
+# Run database migrations
+npx prisma migrate deploy
+
+# Seed with sample data
+npm run db:seed
+```
+
+**Alternative for development**:
+```bash
+# Reset database and apply schema changes
 npx prisma db push
 
 # Seed with sample data
@@ -105,30 +119,51 @@ The application will be available at `http://localhost:3000`
 ## 📁 Project Structure
 
 ```
-navona-starter-store/
+navonaai-starter-store/
 ├── src/
 │   ├── app/                    # Next.js App Router pages
+│   │   ├── admin/             # Admin dashboard
+│   │   │   ├── analytics/     # Abandonment analytics page
+│   │   │   ├── products/      # Product coupon settings
+│   │   │   └── page.tsx       # Admin home
 │   │   ├── api/               # API routes
+│   │   │   ├── abandonment-events/ # Abandonment tracking API
+│   │   │   ├── coupons/validate/   # Coupon validation API
+│   │   │   ├── orders/        # Order management API
+│   │   │   └── products/      # Product management API
 │   │   ├── cart/              # Cart page
-│   │   ├── checkout/          # Checkout page
+│   │   ├── checkout/          # Checkout page with coupon support
 │   │   ├── product/[id]/      # Product detail pages
 │   │   ├── thank-you/         # Order confirmation
 │   │   ├── globals.css        # Global styles
 │   │   ├── layout.tsx         # Root layout
 │   │   └── page.tsx           # Home page
 │   ├── components/            # Reusable UI components
+│   │   ├── admin/             # Admin dashboard components
+│   │   │   ├── AdminTable.tsx # Data table component
+│   │   │   ├── AdminTabs.tsx  # Navigation tabs
+│   │   │   ├── MetricCard.tsx # Analytics metric cards
+│   │   │   └── StatsCard.tsx  # Statistics display
+│   │   ├── AdminLayout.tsx    # Admin layout wrapper
+│   │   ├── CartSidebar.tsx    # Sliding cart panel
+│   │   ├── ExitIntentPopup.tsx # Abandonment detection popup
 │   │   ├── Layout.tsx         # Main layout wrapper
-│   │   ├── ProductCard.tsx    # Product display card
-│   │   └── CartSidebar.tsx    # Sliding cart panel
+│   │   ├── Loader.tsx         # Loading spinner
+│   │   └── ProductCard.tsx    # Product display card
 │   └── lib/                   # Utilities and configuration
+│       ├── validation/        # Zod validation schemas
 │       ├── db.ts              # Prisma client
+│       ├── error-handler.ts   # API error handling
 │       ├── store.ts           # Zustand cart store
 │       ├── types.ts           # TypeScript types
 │       └── utils.ts           # Helper functions
 ├── prisma/
-│   ├── schema.prisma          # Database schema
+│   ├── migrations/            # Database migration files
+│   ├── schema.prisma          # Database schema with abandonment tracking
 │   └── seed.ts                # Database seeding script
 ├── public/                    # Static assets
+├── ABANDONMENT_DETECTION_V2.md # Technical documentation
+├── DEPLOYMENT.md              # Deployment instructions
 ├── package.json               # Dependencies and scripts
 └── tailwind.config.ts         # Tailwind CSS configuration
 ```
@@ -181,7 +216,7 @@ npm run lint            # Run ESLint
 - **Animations**: Subtle hover effects and transitions
 
 ### Database
-- **ORM**: Prisma with SQLite (easily changeable to PostgreSQL/MySQL)
+- **ORM**: Prisma with PostgreSQL (production-ready setup)
 - **Migrations**: Use `npx prisma migrate dev` for schema changes
 - **Seeding**: Modify `prisma/seed.ts` for custom sample data
 
@@ -221,7 +256,7 @@ npm run lint            # Run ESLint
 - **TypeScript**: Type safety and developer experience
 
 ### Database & State
-- **Prisma**: Type-safe ORM with SQLite
+- **Prisma**: Type-safe ORM with PostgreSQL
 - **Zustand**: Lightweight state management
 - **@prisma/client**: Database client generation
 
@@ -270,13 +305,6 @@ abandonment-prevention/
 - **B1**: Dynamic coupons with expiry per session ✅
 - **B3**: Enhanced detection combining multiple signals ✅  
 - **B4**: Admin dashboard for product coupon eligibility ✅
-
-## 📧 Contact
-
-**NavonaAI Assignment Submission**
-- **Repository**: Private GitHub repo (invite ahmed@navona.ai and khattab@navona.ai)
-- **Demo**: Live application with abandonment detection
-- **Documentation**: Complete setup and testing instructions
 
 ## 📝 Implementation Notes
 
