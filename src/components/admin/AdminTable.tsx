@@ -9,8 +9,8 @@ interface Column {
 interface AdminTableProps {
   title: string;
   columns: Column[];
-  data: any[];
-  renderRow: (item: any, index: number) => ReactNode;
+  data: Record<string, unknown>[];
+  renderRow: (item: Record<string, unknown>, index: number) => ReactNode;
   loading?: boolean;
   emptyMessage?: string;
 }

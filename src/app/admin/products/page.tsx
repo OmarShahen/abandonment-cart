@@ -59,7 +59,8 @@ export default function AdminProductsPage() {
       });
 
       setChanges((prev) => {
-        const { [productId]: _, ...rest } = prev;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [productId]: removed, ...rest } = prev;
         return rest;
       });
     } catch (error) {
@@ -261,7 +262,7 @@ export default function AdminProductsPage() {
                     trigger abandonment prevention popups
                   </li>
                   <li>
-                    Products with coupons <strong>disabled</strong> won't
+                    Products with coupons <strong>disabled</strong> won&apos;t
                     show discount offers (good for thin-margin items)
                   </li>
                   <li>

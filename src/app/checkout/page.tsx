@@ -123,10 +123,11 @@ export default function CheckoutPage() {
       setCheckCouponMessage(message);
       setDiscountPercent(coupon.discountPercent);
       setCoupon(coupon);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       setIsCouponValid(false);
-      setCheckCouponMessage(error?.response?.data?.error);
+      const apiError = error as { response?: { data?: { error?: string } } };
+      setCheckCouponMessage(apiError?.response?.data?.error || 'Invalid coupon');
     } finally {
       setIsCouponLoading(false);
     }

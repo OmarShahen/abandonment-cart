@@ -47,10 +47,10 @@ export default function AdminAnalyticsPage() {
       const events = response.data.abandonmentEvents;
 
       const totalEvents = events.length;
-      const acceptedCoupons = events.filter((e: any) => e.isAccepted).length;
-      const completedCheckouts = events.filter((e: any) => e.isCheckoutCompleted).length;
+      const acceptedCoupons = events.filter((e: { isAccepted: boolean }) => e.isAccepted).length;
+      const completedCheckouts = events.filter((e: { isCheckoutCompleted: boolean }) => e.isCheckoutCompleted).length;
       
-      const triggerBreakdown = events.reduce((acc: any, event: any) => {
+      const triggerBreakdown = events.reduce((acc: Record<string, number>, event: { triggerEvent: string }) => {
         acc[event.triggerEvent] = (acc[event.triggerEvent] || 0) + 1;
         return acc;
       }, { CURSOR_LEAVE: 0, IDLE: 0, SCROLLUP_FAST: 0 });

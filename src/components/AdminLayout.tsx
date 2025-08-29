@@ -60,7 +60,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="text-center text-sm text-gray-500">
             <p>
-              NavonaAI Admin Dashboard - Manage your store's abandonment prevention
+              NavonaAI Admin Dashboard - Manage your store&apos;s abandonment prevention
             </p>
           </div>
         </div>
