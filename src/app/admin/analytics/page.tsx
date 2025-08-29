@@ -47,7 +47,8 @@ export default function AdminAnalyticsPage() {
         throw new Error('Failed to fetch analytics');
       }
       const data = await response.json();
-      const events = data.abandonmentEvents;
+      console.log('Analytics API response:', data);
+      const events = data.abandonmentEvents || [];
 
       const totalEvents = events.length;
       const acceptedCoupons = events.filter((e: { isAccepted: boolean }) => e.isAccepted).length;
@@ -71,6 +72,15 @@ export default function AdminAnalyticsPage() {
       });
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
+      // Set empty analytics data on error
+      setAnalytics({
+        totalEvents: 0,
+        acceptedCoupons: 0,
+        completedCheckouts: 0,
+        triggerBreakdown: { CURSOR_LEAVE: 0, IDLE: 0, SCROLLUP_FAST: 0 },
+        conversionRate: 0,
+        acceptanceRate: 0
+      });
     } finally {
       setLoading(false);
     }
