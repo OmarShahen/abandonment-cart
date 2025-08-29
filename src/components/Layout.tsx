@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Store, Settings } from "lucide-react";
+import { ShoppingCart, Store } from "lucide-react";
 import { useCart } from "@/lib/store";
 import { formatPrice } from "@/lib/utils";
 import ExitIntentPopup from "./ExitIntentPopup";

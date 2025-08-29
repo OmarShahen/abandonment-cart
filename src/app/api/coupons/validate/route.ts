@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       { message: "Coupon applied successfully", coupon },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
     return handleApiError(error);
   }

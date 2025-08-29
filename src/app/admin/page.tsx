@@ -36,7 +36,7 @@ export default function AdminPage() {
             </h1>
           </div>
           <p className="text-gray-600">
-            Manage your store's abandonment prevention settings and view analytics
+            Manage your store&apos;s abandonment prevention settings and view analytics
           </p>
         </div>
 

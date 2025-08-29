@@ -13,7 +13,7 @@ export async function GET() {
       { accepted: true, abandonmentEvents },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error);
   }
 }
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       { accepted: true, message: "Event Created Successfully!", ...result },
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleApiError(error);
   }
 }

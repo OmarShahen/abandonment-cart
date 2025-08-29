@@ -124,7 +124,7 @@ export default function ExitIntentPopup() {
         };
         const response = await api.post(`/abandonment-events`, eventData);
         setCoupon(response.data.coupon);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error(error);
         setShowPopup(false);
       } finally {
@@ -133,7 +133,7 @@ export default function ExitIntentPopup() {
     };
 
     if (showPopup) createAbandonmentEvent();
-  }, [showPopup]);
+  }, [showPopup, cartItems, triggerType]);
 
   const handleApplyCoupon = () => {
     setShowPopup(false);
