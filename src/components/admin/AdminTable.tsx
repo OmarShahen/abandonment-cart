@@ -6,7 +6,7 @@ interface Column {
   width?: string;
 }
 
-interface AdminTableProps<T = Record<string, unknown>> {
+interface AdminTableProps<T extends { id: string | number } = { id: string } & Record<string, unknown>> {
   title: string;
   columns: Column[];
   data: T[];
@@ -15,7 +15,7 @@ interface AdminTableProps<T = Record<string, unknown>> {
   emptyMessage?: string;
 }
 
-export default function AdminTable<T>({
+export default function AdminTable<T extends { id: string | number }>({
   title,
   columns,
   data,
