@@ -27,11 +27,9 @@ export default function ExitIntentPopup() {
     let idleTimer: NodeJS.Timeout;
     let lastScroll = window.scrollY;
 
-    // const hasShownThisSession =
-    //   typeof window !== "undefined" &&
-    //   sessionStorage.getItem("abandonment_popup_shown") === "true";
-
-    const hasShownThisSession = false;
+    const hasShownThisSession =
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("abandonment_popup_shown") === "true";
 
     const triggerPopup = () => {
       // Check if cart has items that accept coupons
