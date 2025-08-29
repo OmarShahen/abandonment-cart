@@ -16,7 +16,6 @@ import AdminTabs from "@/components/admin/AdminTabs";
 import MetricCard from "@/components/admin/MetricCard";
 import InfoCard from "@/components/admin/InfoCard";
 import ProgressBar from "@/components/admin/ProgressBar";
-import api from "@/lib/api";
 import Loader from "@/components/Loader";
 
 interface AnalyticsData {
@@ -43,8 +42,12 @@ export default function AdminAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/abandonment-events");
-      const events = response.data.abandonmentEvents;
+      const response = await fetch("/api/abandonment-events");
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics');
+      }
+      const data = await response.json();
+      const events = data.abandonmentEvents;
 
       const totalEvents = events.length;
       const acceptedCoupons = events.filter((e: { isAccepted: boolean }) => e.isAccepted).length;

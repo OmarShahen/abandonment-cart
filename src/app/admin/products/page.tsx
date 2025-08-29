@@ -7,7 +7,6 @@ import AdminTabs from "@/components/admin/AdminTabs";
 import StatsCard from "@/components/admin/StatsCard";
 import AdminTable from "@/components/admin/AdminTable";
 import InfoCard from "@/components/admin/InfoCard";
-import api from "@/lib/api";
 import { Product } from "@/lib/types";
 import Loader from "@/components/Loader";
 
@@ -24,8 +23,12 @@ export default function AdminProductsPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await api.get("/products");
-      setProducts(response.data);
+      const response = await fetch("/api/products");
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const data = await response.json();
+      setProducts(data);
     } catch (error) {
       console.error("Failed to fetch products:", error);
     } finally {
@@ -54,9 +57,19 @@ export default function AdminProductsPage() {
       setSaving(productId);
       const newValue = changes[productId];
 
-      await api.put(`/products/${productId}`, {
-        isAcceptCoupon: newValue,
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          isAcceptCoupon: newValue,
+        }),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update product');
+      }
 
       setChanges((prev) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
