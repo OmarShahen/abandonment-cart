@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,7 +12,7 @@ import clsx from "clsx";
 import api from "@/lib/api";
 import { Coupon } from "@/lib/types";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
 
   const searchParam = useSearchParams();
@@ -531,5 +531,15 @@ export default function CheckoutPage() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
