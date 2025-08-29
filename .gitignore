@@ -46,6 +46,9 @@ dev.db-journal
 *.swp
 *.swo
 
+# Claude Code
+.claude/
+
 # OS
 Thumbs.db
 
