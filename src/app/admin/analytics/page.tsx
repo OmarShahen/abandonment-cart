@@ -42,34 +42,14 @@ export default function AdminAnalyticsPage() {
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/abandonment-events");
+      const response = await fetch("/api/analytics");
       if (!response.ok) {
         throw new Error('Failed to fetch analytics');
       }
       const data = await response.json();
       console.log('Analytics API response:', data);
-      const events = data.abandonmentEvents || [];
-
-      const totalEvents = events.length;
-      const acceptedCoupons = events.filter((e: { isAccepted: boolean }) => e.isAccepted).length;
-      const completedCheckouts = events.filter((e: { isCheckoutCompleted: boolean }) => e.isCheckoutCompleted).length;
       
-      const triggerBreakdown = events.reduce((acc: Record<string, number>, event: { triggerEvent: string }) => {
-        acc[event.triggerEvent] = (acc[event.triggerEvent] || 0) + 1;
-        return acc;
-      }, { CURSOR_LEAVE: 0, IDLE: 0, SCROLLUP_FAST: 0 });
-
-      const conversionRate = totalEvents > 0 ? (completedCheckouts / totalEvents) * 100 : 0;
-      const acceptanceRate = totalEvents > 0 ? (acceptedCoupons / totalEvents) * 100 : 0;
-
-      setAnalytics({
-        totalEvents,
-        acceptedCoupons,
-        completedCheckouts,
-        triggerBreakdown,
-        conversionRate,
-        acceptanceRate
-      });
+      setAnalytics(data.analytics);
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
       // Set empty analytics data on error
